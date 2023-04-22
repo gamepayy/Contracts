@@ -2,8 +2,9 @@
 pragma solidity 0.8.19;
 
 library DataTypes {
-    struct A{
-        uint256 a;
-        uint256 b;
+
+    struct UserAssetData{
+        uint8[] assetsHeld;
+        uint lastUpdate;
     }
 }
