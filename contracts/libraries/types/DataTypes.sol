@@ -7,4 +7,9 @@ library DataTypes {
         uint8[] assetsHeld;
         uint lastUpdate;
     }
+
+    struct TokenData{
+        address priceFeed;
+        bool paused;
+    }
 }

