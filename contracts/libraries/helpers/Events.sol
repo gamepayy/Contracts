@@ -12,4 +12,7 @@ library Events {
     event PriceFeedUnPaused(address indexed token, address indexed priceFeed);
     event PriceFeedSet(address indexed token, address indexed priceFeed);
 
+    // Asset Manager
+    event Deposit(address indexed user, address indexed asset, uint amount);
+    event Withdraw(address indexed user, address indexed asset, uint amount);
 }
