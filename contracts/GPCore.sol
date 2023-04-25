@@ -9,10 +9,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/helpers/Roles.sol";
 import "./libraries/helpers/Errors.sol";
 import "./libraries/helpers/Events.sol";
+import "./OracleRegistry.sol";
+import "./AssetManager.sol";
+import "./FundsManager.sol";
+import "./Arbitrators.sol";
 
 
 /// @custom:security-contact jovi@gamepayy.com
-contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable, OracleRegistry, AssetManager, FundsManager, Arbitrators {
    
 
     mapping(address => uint256) public balances;

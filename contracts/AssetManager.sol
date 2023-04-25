@@ -59,7 +59,7 @@ contract AssetManager is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         emit Events.Deposit(msg.sender, _asset, _amount);
     }
 
-    function withdraw(address _asset, uint _amount) public {
+    function userWithdraw(address _asset, uint _amount) public {
         
         if (isAssetApproved[_asset] == false) {
             
