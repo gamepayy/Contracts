@@ -13,7 +13,7 @@ library Events {
 
     // Asset Manager
     event AssetApproved(address indexed asset, address indexed approver);
-    event AssetDisapproved(address indexed asset, address indexed disapprover);
+    event AssetRemoved(address indexed asset, address indexed remover);
     event Deposit(address indexed user, address indexed asset, uint amount);
     event Withdraw(address indexed user, address indexed asset, uint amount);
 }

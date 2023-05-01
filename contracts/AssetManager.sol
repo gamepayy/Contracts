@@ -29,7 +29,7 @@ contract AssetManager is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     function removeAsset(address _asset) public onlyRole(Roles.ASSET_MANAGER_ROLE) {
         isAssetApproved[_asset] = false;
 
-        emit Events.AssetDisapproved(_asset, msg.sender);
+        emit Events.AssetRemoved(_asset, msg.sender);
     }
 
     function deposit(address _asset, uint _amount) public payable nonReentrant {
