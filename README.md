@@ -7,7 +7,7 @@
 - [x] Funds Manager
 - [x] Oracle Registry
 - [ ] Rewards Contract
-- [ ] Change disapprove asset at AssetManager contract to remove asset
+- [x] Change disapprove asset at AssetManager contract to remove asset
 - [ ] Check role requirements on all contracts
 - [ ] Unit tests
 - [ ] CI/CD pipeline

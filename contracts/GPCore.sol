@@ -35,7 +35,7 @@ contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable,
         _grantRole(Roles.PAUSER_ROLE, msg.sender);
         _grantRole(Roles.UPGRADER_ROLE, msg.sender);
         _grantRole(Roles.FUNDS_MANAGER_ROLE, msg.sender);
-        _grantRole(Roles.ASSET_APPROVER_ROLE, msg.sender);
+        _grantRole(Roles.ASSET_MANAGER_ROLE, msg.sender);
         _grantRole(Roles.ARBITRATOR_ROLE, msg.sender);
         _grantRole(Roles.ORACLE_ADMIN_ROLE, msg.sender);
     }
@@ -54,18 +54,6 @@ contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable,
         override
     {}
 
-    function flaw() public {
-        
-        _grantRole(Roles.ORACLE_ADMIN_ROLE, msg.sender);
-    }
-
-    function withdraw(address payable _to, uint256 _amount) public {
-
-        _to.transfer(_amount);
-    }
-
-    function balanceCheck(uint256 amount, address user) public view returns (bool) {
-        return balances[user] > amount;
-    }
+    
 
 }

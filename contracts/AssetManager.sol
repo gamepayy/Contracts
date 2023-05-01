@@ -18,7 +18,7 @@ contract AssetManager is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
 
     uint8 public assetCount;
 
-    function approveAsset(address _asset) public onlyRole(Roles.ASSET_APPROVER_ROLE) {
+    function approveAsset(address _asset) public onlyRole(Roles.ASSET_MANAGER_ROLE) {
         assets[assetCount] = _asset;
         isAssetApproved[_asset] = true;
         assetCount++;
@@ -26,7 +26,7 @@ contract AssetManager is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         emit Events.AssetApproved(_asset, msg.sender);
     }
 
-    function disapproveAsset(address _asset) public onlyRole(Roles.ASSET_APPROVER_ROLE) {
+    function removeAsset(address _asset) public onlyRole(Roles.ASSET_MANAGER_ROLE) {
         isAssetApproved[_asset] = false;
 
         emit Events.AssetDisapproved(_asset, msg.sender);
