@@ -5,8 +5,9 @@ import "./libraries/helpers/Roles.sol";
 import "./libraries/helpers/Events.sol";
 import "./libraries/helpers/Errors.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-contract FundsManager is AccessControlUpgradeable {
+contract FundsManager is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
 
     function withdrawFunds(address payable _to, uint256 _amount) public onlyRole(Roles.FUNDS_MANAGER_ROLE) {
        (bool success, ) = _to.call{value: _amount}("");
@@ -16,5 +17,9 @@ contract FundsManager is AccessControlUpgradeable {
 
          emit Events.AdminWithdraw(_to, _amount);
 
+    }
+
+    fallback () external payable nonReentrant {
+        
     }
 }
