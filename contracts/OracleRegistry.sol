@@ -25,9 +25,25 @@ contract OracleRegistry is AccessControlUpgradeable {
     mapping(address => DataTypes.TokenData) public tokenToPriceFeed;
     uint256 public constant nativeTokenDecimals = 18;
 
+    function setPriceFeed(address _priceFeed) onlyRole(Roles.ORACLE_ADMIN_ROLE) external {
+        tokenToPriceFeed[address(0)].priceFeed = _priceFeed;
+        emit Events.PriceFeedSet(address(0), _priceFeed);
+    }
+
     function setPriceFeed(address _token, address _priceFeed) onlyRole(Roles.ORACLE_ADMIN_ROLE) external {
         tokenToPriceFeed[_token].priceFeed = _priceFeed;
         emit Events.PriceFeedSet(_token, _priceFeed);
+    }
+
+    function getPrice() public view returns (uint256) {
+
+        address priceFeed = tokenToPriceFeed[address(0)].priceFeed;
+        
+        (, int256 price, , , ) = AggregatorV3Interface(priceFeed).latestRoundData();
+
+        // test cases with random decimals
+        // does it work if the result is negative? DO NOT FORGET TO TEST THIS EDGE CASE
+        return (uint256(price));
     }
 
     function getPrice(address _token) public view returns (uint256) {
@@ -43,28 +59,28 @@ contract OracleRegistry is AccessControlUpgradeable {
         return (uint256(price) * 10 ** (nativeTokenDecimals - tokenDecimals));
     }
 
-
-    function tryPrice(address _token) public returns (uint256) {
-        
-        try this.getPrice(_token) returns (uint256 price) {
-
-            return price;
-        } catch (bytes memory errData) {
-
-            if (errData.length == 0) revert(); // solhint-disable-line reason-string
-            pauseFeed(_token);
-        }
-    }
-
     function unpauseFeed(address _token) public onlyRole(Roles.ORACLE_ADMIN_ROLE) {
 
         tokenToPriceFeed[_token].paused = false;
         emit Events.PriceFeedUnPaused(_token, tokenToPriceFeed[_token].priceFeed);
     }
 
-    function pauseFeed(address _token) private {
+    function unpauseFeed() public onlyRole(Roles.ORACLE_ADMIN_ROLE) {
+
+        tokenToPriceFeed[address(0)].paused = false;
+        emit Events.PriceFeedUnPaused(address(0), tokenToPriceFeed[address(0)].priceFeed);
+    }
+
+
+    function pauseFeed(address _token) public onlyRole(Roles.ORACLE_ADMIN_ROLE)  {
 
         tokenToPriceFeed[_token].paused = true;
         emit Events.PriceFeedPaused(_token, tokenToPriceFeed[_token].priceFeed);
+    }
+
+    function pauseFeed() public onlyRole(Roles.ORACLE_ADMIN_ROLE)  {
+
+        tokenToPriceFeed[address(0)].paused = true;
+        emit Events.PriceFeedPaused(address(0), tokenToPriceFeed[address(0)].priceFeed);
     }
 }
