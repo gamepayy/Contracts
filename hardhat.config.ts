@@ -5,10 +5,7 @@ import '@openzeppelin/hardhat-upgrades';
 import dotenv from "dotenv";
 dotenv.config();
 
-
-
-// add mumbai testnet 
-// take accounts from accounts.csv file
+const TENDERLY_FORK_URL = process.env.TENDERLY_FORK_URL || "";
 
 
 const config: HardhatUserConfig = {
@@ -18,7 +15,10 @@ const config: HardhatUserConfig = {
     },
     polygonZkTestnet: {
       url: "https://rpc.public.zkevm-test.net",
-    }
+    },
+    "tenderly-fork": {
+      url: TENDERLY_FORK_URL
+    },
   },
   solidity: {
     compilers: [
