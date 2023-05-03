@@ -182,4 +182,26 @@ describe("Oracle Registry", () => {
 
     });
 
+    describe ("Displays price feed updates properly", () => {
+
+        beforeEach(async () => {
+
+            await gpCore["setPriceFeed(address)"](mockOracle.address);
+            
+    
+        });
+        
+        it("Should display an updated price feed", async () => {
+
+            const initialPrice = await gpCore["getPrice()"]();
+            expect(initialPrice).to.equal(10000000000000);
+
+            await mockOracle.updateAnswer(20000000000000);
+
+            const finalPrice = await gpCore["getPrice()"]();
+            expect(finalPrice).to.equal(20000000000000);
+
+        });
+    });
+
 });
