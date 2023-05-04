@@ -12,11 +12,12 @@ import "./libraries/helpers/Events.sol";
 import "./OracleRegistry.sol";
 import "./AssetManager.sol";
 import "./FundsManager.sol";
+import "./Rewards.sol";
 import "./Arbitrators.sol";
 
 
 /// @custom:security-contact jovi@gamepayy.com
-contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable, OracleRegistry, AssetManager, FundsManager, Arbitrators {
+contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable, OracleRegistry, AssetManager, FundsManager, Arbitrators, Rewards {
    
 
     mapping(address => uint256) public balances;
@@ -39,6 +40,9 @@ contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable,
         _grantRole(Roles.ARBITRATOR_ROLE, msg.sender);
         _grantRole(Roles.ORACLE_ADMIN_ROLE, msg.sender);
         _grantRole(Roles.REWARDS_ADMIN_ROLE, msg.sender);
+
+        periodicity = 1 days;
+        latestRewards = block.timestamp - 1 days;
     }
 
     function pause() public onlyRole(Roles.PAUSER_ROLE) {
