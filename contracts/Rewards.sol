@@ -51,7 +51,7 @@ contract Rewards is AccessControlUpgradeable {
             revert Errors.ALREADY_CLAIMED();
         }
 
-        rewardState[rootHash][msg.sender][rootHash] = true;
+        rewardState[rootHash][msg.sender][leaf] = true;
 
         // transfer rewards
 

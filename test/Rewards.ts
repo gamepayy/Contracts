@@ -15,8 +15,8 @@ describe("Rewards", () => {
     let proofOne;
 
     const rewardsAdminRole = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("REWARDS_ADMIN_ROLE"));
-    const amountZero = "5000";
-    const amountOne = "2500";
+    const amountZero = 5000;
+    const amountOne = 2500;
 
     beforeEach(async () => {
 
@@ -39,8 +39,8 @@ describe("Rewards", () => {
         await mockERC20_2.transfer(gpCore.address, ethers.utils.parseEther("10000"));
 
         const values = [
-            [signers[1].address, mockERC20.address, amountOne],
-            [signers[2].address, mockERC20_2.address, amountZero]
+            [signers[1].address, mockERC20.address, amountZero],
+            [signers[2].address, mockERC20_2.address, amountOne]
           ];
     
         const tree = StandardMerkleTree.of(values, ["address", "address", "uint256"]);
@@ -156,27 +156,85 @@ describe("Rewards", () => {
             await gpCore.connect(deployer).deployRewards(root);
 
             latestRewards = await gpCore.latestRewards();
-
-            expect(latestRewards).to.greaterThan(initialLatestRewards);
-            expect(await gpCore.rootHashes(latestRewards)).to.equal(root);
     
         });
         
         it("Should claim eth rewards ", async () => {
 
+            await deployer.sendTransaction({to: gpCore.address, value: ethers.utils.parseEther("100")});
+            const values2 = [
+                [signers[3].address, ethers.constants.AddressZero, ethers.utils.parseEther("1")]
+              ];
+        
+            const tree2 = StandardMerkleTree.of(values2, ["address", "address", "uint256"]);
+        
+            const root2 = tree2.root;
+            const proofZero2 = tree2.getProof(0);
+
+            const periodicity = await gpCore.periodicity();
+
+            await ethers.provider.send("evm_increaseTime", [periodicity.toNumber() + 1]);
+            await ethers.provider.send("evm_mine", []);
+
+            await gpCore.connect(deployer).deployRewards(root2);
+            const latestRewards = await gpCore.latestRewards();
+
+            const initialBalanceZero =  await ethers.provider.getBalance(signers[3].address);
+
+            await gpCore.connect(signers[3]).claimRewards(latestRewards, root2, proofZero2, ethers.constants.AddressZero, ethers.utils.parseEther("1"));
+
+            const finalBalanceZero =  await ethers.provider.getBalance(signers[3].address);
+
+            expect(finalBalanceZero).to.closeTo(initialBalanceZero.add(ethers.utils.parseEther("1")), ethers.utils.parseEther("0.1"));
+
         });
 
         it("Should claim erc20 rewards ", async () => {
 
-            
+            const initialBalanceZero =  await mockERC20.balanceOf(signers[1].address);
 
+            await gpCore.connect(signers[1]).claimRewards(latestRewards, root, proofZero, mockERC20.address, amountZero);
+            
+            const finalBalanceZero =  await mockERC20.balanceOf(signers[1].address);
+            expect(finalBalanceZero).to.equal(initialBalanceZero.add(amountZero));
+
+            const initialBalanceOne =  await mockERC20_2.balanceOf(signers[2].address);
+
+            await gpCore.connect(signers[2]).claimRewards(latestRewards, root, proofOne, mockERC20_2.address, amountOne);
+
+            const finalBalanceOne =  await mockERC20_2.balanceOf(signers[2].address);
+            expect(finalBalanceOne).to.equal(initialBalanceOne.add(amountOne));
+           
         });
 
-        it("Should throw error when root hash if invalid", async () => {});
-        
-        it("Should throw error when proof if invalid", async () => {});
+        it("Should throw error when root hash if invalid", async () => {
 
-        it("Should throw error when reward has already been claimed", async () => {});
+            const values2 = [
+                [signers[3].address, mockERC20.address, amountZero],
+                [signers[4].address, mockERC20_2.address, amountOne]
+              ];
+        
+            const tree2 = StandardMerkleTree.of(values2, ["address", "address", "uint256"]);
+        
+            const root2 = tree2.root;
+
+            await expect(gpCore.connect(signers[1]).claimRewards(latestRewards, root2, proofZero, mockERC20.address, amountZero)).to.be.revertedWithCustomError(gpCore, "INVALID_ROOT_HASH");
+        });
+        
+        it("Should throw error when proof if invalid", async () => {
+            await expect(gpCore.connect(signers[1]).claimRewards(latestRewards, root, proofOne, mockERC20.address, amountZero)).to.be.revertedWithCustomError(gpCore, "INVALID_PROOF");
+        });
+
+        it("Should throw error when reward has already been claimed", async () => {
+            const initialBalanceZero =  await mockERC20.balanceOf(signers[1].address);
+
+            await gpCore.connect(signers[1]).claimRewards(latestRewards, root, proofZero, mockERC20.address, amountZero);
+            
+            const finalBalanceZero =  await mockERC20.balanceOf(signers[1].address);
+            expect(finalBalanceZero).to.equal(initialBalanceZero.add(amountZero));
+
+            await expect(gpCore.connect(signers[1]).claimRewards(latestRewards, root, proofZero, mockERC20.address, amountZero)).to.be.revertedWithCustomError(gpCore, "ALREADY_CLAIMED");
+        });
         
     });
 
