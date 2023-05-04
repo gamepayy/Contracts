@@ -38,6 +38,7 @@ contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable,
         _grantRole(Roles.ASSET_MANAGER_ROLE, msg.sender);
         _grantRole(Roles.ARBITRATOR_ROLE, msg.sender);
         _grantRole(Roles.ORACLE_ADMIN_ROLE, msg.sender);
+        _grantRole(Roles.REWARDS_ADMIN_ROLE, msg.sender);
     }
 
     function pause() public onlyRole(Roles.PAUSER_ROLE) {
@@ -53,7 +54,5 @@ contract GPCore is Initializable, PausableUpgradeable, AccessControlUpgradeable,
         onlyRole(Roles.UPGRADER_ROLE)
         override
     {}
-
-    
 
 }

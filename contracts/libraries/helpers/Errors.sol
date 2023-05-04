@@ -15,9 +15,13 @@ library Errors {
   error INVALID_TO_BALANCE_AFTER_TRANSFER();
   error CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST();
   error ASSET_NOT_SUPPORTED();
+  error ALREADY_CLAIMED();
   error INVALID_AMOUNT();
   error INSUFFICIENT_BALANCE();
   error TRANSFER_FAILED();
+  error INVALID_ROOT_HASH();
+  error INVALID_PROOF();
+  error REWARDS_TOO_FAST(uint256 latestRewards, uint256 periodicity, uint256 blockTimestamp);
 
   //math library erros
   string public constant MATH_MULTIPLICATION_OVERFLOW = "200";
