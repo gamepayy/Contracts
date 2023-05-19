@@ -1,4 +1,7 @@
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
+import { ethers } from "ethers";
+import { abi } from "../artifacts/contracts/GPCore.sol/GPCore.json";
+
 const mysql = require('mysql2')
 
 require('dotenv').config()
@@ -17,7 +20,60 @@ const fetchPendingWithdrawals = async () => {
   return rows
 }
 
+const insertMerkleTree= async (tree: StandardMerkleTree<any>, values: any[]) => {
+  const connection = mysql.createConnection(process.env.DATABASE_URL)
 
+  let query = 'INSERT INTO merkle_trees (root, proof, address, token_address, amount) VALUES'
+
+  let parameters: any[] = []
+  let argumentsPerRow = 5
+
+  let succesfulWithdrawals: any[] = []
+
+  for (let i=0; i < values.length; i++) {
+    
+    const verify = StandardMerkleTree.verify(tree.root, ['address', 'address', 'uint256'], values[i], tree.getProof(i));
+
+    if(verify){
+      
+      query += "(?, ?, ?, ?, ?),"
+      parameters.push(tree.root, tree.getProof(i), values[i][0], values[i][1], values[i][2])
+      succesfulWithdrawals.push(values[i])
+      
+    }
+  }
+
+  const [rows, fields] = await connection.promise().query(query.slice(0, -1), parameters)
+
+  insertIntoMerkleRootAtChain(tree.root)
+
+  updatePendingWithdrawals(connection, succesfulWithdrawals)
+   
+    
+}
+
+const updatePendingWithdrawals = async (connection: any ,withdrawals: PendingWithdrawal[]) => {
+  
+  for (let i = 0; i < withdrawals.length; i++) {
+    const [rows, fields] = await connection.promise().query('UPDATE pending_withdrawals SET pending = 0 WHERE pending = 1, address = ?, token_address = ?, amount = ?', [withdrawals[i].address, withdrawals[i].token_address, withdrawals[i].amount])
+  }
+  return true
+}
+
+const insertIntoMerkleRootAtChain = async (root: string) => {
+
+  const provider = new ethers.providers.AlchemyProvider('matic', process.env.ALCHEMY_API_KEY)
+
+  const wallet = new ethers.Wallet(process.env.REWARDS_ADMIN_PRIVATE_KEY as string, provider)
+
+  const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS as string, abi, wallet)
+
+  let tx = await contract.deployRewards(root)
+  tx = await tx.wait()
+
+  console.log("Succesfully inserted the merkle root at the following transaction: ", tx)
+
+}
 
 const main = async () => {
 
@@ -43,16 +99,8 @@ const main = async () => {
     const root = tree.root;
     const proofZero = tree.getProof(0);
     const proofOne = tree.getProof(1);
-  /*  
-    const verified = StandardMerkleTree.verify(root, ['address', 'uint'], values[0], proofZero);
-    console.log(verified); // TRUE
 
-    const verified2 = StandardMerkleTree.verify(root, ['address', 'uint'], values[1], proofOne);
-    console.log(verified2); // TRUE
-
-    const verified3 = StandardMerkleTree.verify(root, ['address', 'uint'], values[0], proofOne);
-    console.log(verified3); // FALSE
-*/
+    insertMerkleTree(tree, values)
     console.log(tree);
 
     console.log(tree.render())
