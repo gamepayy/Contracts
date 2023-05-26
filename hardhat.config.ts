@@ -2,6 +2,9 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-truffle5";
 import '@openzeppelin/hardhat-upgrades';
+import "@nomiclabs/hardhat-etherscan";
+import "hardhat-gas-reporter";
+import "hardhat-deploy";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -12,6 +15,7 @@ const config: HardhatUserConfig = {
   networks: {
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
     },
     polygonZkTestnet: {
       url: "https://rpc.public.zkevm-test.net",
@@ -19,6 +23,12 @@ const config: HardhatUserConfig = {
     "tenderly-fork": {
       url: TENDERLY_FORK_URL
     },
+  },
+  namedAccounts: {
+    account0: 0
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
   },
   solidity: {
     compilers: [
