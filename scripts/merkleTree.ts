@@ -53,22 +53,22 @@ const insertMerkleTree= async (tree: StandardMerkleTree<any>, values: any[]) => 
 }
 
 const updatePendingWithdrawals = async (connection: any ,withdrawals: PendingWithdrawal[]) => {
-  
+
   for (let i = 0; i < withdrawals.length; i++) {
-    const [rows, fields] = await connection.promise().query('UPDATE pending_withdrawals SET pending = 0 WHERE pending = 1, address = ?, token_address = ?, amount = ?', [withdrawals[i].address, withdrawals[i].token_address, withdrawals[i].amount])
+    const [rows, fields] = await connection.promise().query('UPDATE pending_withdrawals SET pending = 0 WHERE pending = 1 AND address = ? AND token_address = ? AND amount = ?', [withdrawals[i][0], withdrawals[i][1], parseInt(withdrawals[i][2])])
   }
   return true
 }
 
 const insertIntoMerkleRootAtChain = async (root: string) => {
 
-  const provider = new ethers.providers.AlchemyProvider('matic', process.env.ALCHEMY_API_KEY)
+  const provider = new ethers.providers.AlchemyProvider('maticmum', process.env.ALCHEMY_API_KEY)
 
   const wallet = new ethers.Wallet(process.env.REWARDS_ADMIN_PRIVATE_KEY as string, provider)
 
   const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS as string, abi, wallet)
 
-  let tx = await contract.deployRewards(root)
+  let tx = await contract.deployRewards(root, {gasLimit: 2500000})
   tx = await tx.wait()
 
   console.log("Succesfully inserted the merkle root at the following transaction: ", tx)
@@ -89,7 +89,7 @@ const main = async () => {
   for (let i = 0; i < pendingWithdrawals.length; i++) {
     if(pendingWithdrawals[i].pending == 1){
       const value = [pendingWithdrawals[i].address, pendingWithdrawals[i].token_address, pendingWithdrawals[i].amount]
-    
+
       values.push(value)
     }
   }

@@ -9,21 +9,19 @@
 - [x] Rewards Contract
 - [ ] UserData at Asset Manager Contract
 - [x] Change disapprove asset at AssetManager contract to remove asset
-- [ ] Check role requirements on all contracts
-- [ ] Unit tests
-    - [ ] Main unit tests
+- [x] Check role requirements on all contracts
+- [x] Unit tests
+    - [x] Main unit tests
     - [ ] Events unit tests
 - [x] CI/CD pipeline
 - [ ] Integration tests
-    - [ ] Merkle Tree
-    - [ ] Ledger API
+    - [x] Merkle Tree
+    - [x] Ledger API
     - [ ] Tenderly
 - [ ] Deployments
 - [ ] Documentation
 
 - [ ] Multichain deployment
-- [ ] Tenderly Integration
-- [ ] Ledger API Integration
 
 - Totally extra:
 - [ ] Bulk rewards claimer at Rewards Contract
