@@ -5,8 +5,8 @@ import '@openzeppelin/hardhat-upgrades';
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter";
 import "hardhat-deploy";
-import dotenv from "dotenv";
-dotenv.config();
+
+require('dotenv').config()
 
 const TENDERLY_FORK_URL = process.env.TENDERLY_FORK_URL || "";
 
