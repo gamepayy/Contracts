@@ -13,16 +13,15 @@ type PendingWithdrawal = {
   amount: string,
 }
 
-const fetchPendingWithdrawals = async () => {
-  const connection = mysql.createConnection(process.env.DATABASE_URL)
+const fetchPendingWithdrawals = async (connection: any) => {
+  
   const [rows, fields] = await connection.promise().query('SELECT * FROM pending_withdrawals')
   connection.end()
   return rows
 }
 
-const insertMerkleTree= async (tree: StandardMerkleTree<any>, values: any[]) => {
-  const connection = mysql.createConnection(process.env.DATABASE_URL)
-
+const insertMerkleTree= async (connection: any, tree: StandardMerkleTree<any>, values: any[]) => {
+  
   let query = 'INSERT INTO merkle_trees (root, proof, address, token_address, amount) VALUES'
 
   let parameters: any[] = []
@@ -83,7 +82,7 @@ const main = async () => {
   console.log('Connected to PlanetScale!')
   connection.end()
 
-  const pendingWithdrawals = await fetchPendingWithdrawals()
+  const pendingWithdrawals = await fetchPendingWithdrawals(connection)
   console.log(pendingWithdrawals)
 
   for (let i = 0; i < pendingWithdrawals.length; i++) {
@@ -100,7 +99,7 @@ const main = async () => {
     const proofZero = tree.getProof(0);
     const proofOne = tree.getProof(1);
 
-    insertMerkleTree(tree, values)
+    insertMerkleTree(connection, tree, values)
     console.log(tree);
 
     console.log(tree.render())
