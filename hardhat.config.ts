@@ -15,7 +15,12 @@ const config: HardhatUserConfig = {
   networks: {
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
+      accounts: [
+        process.env.DEPLOYER_PRIVATE_KEY as string, 
+        process.env.INTEGRATION_TEST_ACC1_PRIVATE_KEY as string, 
+        process.env.INTEGRATION_TEST_ACC2_PRIVATE_KEY as string,
+        process.env.INTEGRATION_TEST_ACC3_PRIVATE_KEY as string,
+      ],
       chainId: 80001,
     },
     polygonZkTestnet: {
