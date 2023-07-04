@@ -5,7 +5,6 @@ import { abi } from "../artifacts/contracts/GPCore.sol/GPCore.json";
 const mysql = require('mysql2')
 
 require('dotenv').config()
-// Utilizes https://github.com/OpenZeppelin/merkle-tree to generate Merkle Trees.
 
 type PendingWithdrawal = {
   address: string,
@@ -13,48 +12,65 @@ type PendingWithdrawal = {
   amount: string,
 }
 
-const fetchPendingWithdrawals = async (connection: any) => {
+const fetchPendingWithdrawals = async (connection: any, table: string) => {
   
-  const [rows, fields] = await connection.promise().query('SELECT * FROM pending_withdrawals')
-  connection.end()
+  const [rows, fields] = await connection.promise().query(`SELECT * FROM ${table}`)
   return rows
 }
 
-const insertMerkleTree= async (connection: any, tree: StandardMerkleTree<any>, values: any[]) => {
+const processPendingWithdrawals = async (connection: any, tableName: string, ids: number[]) => {
+  // Transform ids array to a string of comma-separated values
+  const idsString = ids.join(', ');
+
+  const query = `UPDATE ${tableName} SET pending = false WHERE id IN (${idsString})`;
+
+  // execute the query
+  const [rows2, fields2] = await connection.promise().query(query);
+
+  return true;
+}
+
+
+const insertMerkleTree = async (connection: any, tree: StandardMerkleTree<any>, values: any[]) => {
   
-  let query = 'INSERT INTO merkle_trees (root, proof, address, token_address, amount) VALUES'
+  let query = 'INSERT INTO MerkleTrees (root, address, token_address, amount, hash1, hash2, hash3, hash4, hash5, hash6, hash7, hash8, hash9, hash10, hash11, hash12) VALUES';
+  let parameters: any[] = [];
 
-  let parameters: any[] = []
-  let argumentsPerRow = 5
-
-  let succesfulWithdrawals: any[] = []
+  let successfulWithdrawals: any[] = [];
 
   for (let i=0; i < values.length; i++) {
     
     const verify = StandardMerkleTree.verify(tree.root, ['address', 'address', 'uint256'], values[i], tree.getProof(i));
 
-    if(verify){
-      
-      query += "(?, ?, ?, ?, ?),"
-      parameters.push(tree.root, tree.getProof(i), values[i][0], values[i][1], values[i][2])
-      succesfulWithdrawals.push(values[i])
-      
+    if(verify) {
+      let proof = tree.getProof(i);
+      let hashes = new Array(12).fill(null);
+
+      for (let j = 0; j < proof.length; j++) {
+        hashes[j] = proof[j];
+      }
+
+      query += "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?),";
+      parameters.push(tree.root, values[i][0], values[i][1], values[i][2], ...hashes);
+      successfulWithdrawals.push(values[i]);
     }
   }
 
-  const [rows, fields] = await connection.promise().query(query.slice(0, -1), parameters)
+  console.log(query.slice(0, -1));
+  console.log(parameters);
 
-  insertIntoMerkleRootAtChain(tree.root)
+  const [rows, fields] = await connection.promise().query(query.slice(0, -1), parameters);
 
-  updatePendingWithdrawals(connection, succesfulWithdrawals)
-   
-    
+  console.log("Successfully inserted the merkle tree into the database!");
+  await insertIntoMerkleRootAtChain(tree.root);
+  // commented out as this should only be done every 24 hours
+
 }
 
-const updatePendingWithdrawals = async (connection: any ,withdrawals: PendingWithdrawal[]) => {
+const resetPendingWithdrawals = async (connection: any, withdrawals: PendingWithdrawal[], tableName: string) => {
 
   for (let i = 0; i < withdrawals.length; i++) {
-    const [rows, fields] = await connection.promise().query('UPDATE pending_withdrawals SET pending = 0 WHERE pending = 1 AND address = ? AND token_address = ? AND amount = ?', [withdrawals[i][0], withdrawals[i][1], parseInt(withdrawals[i][2])])
+    const [rows, fields] = await connection.promise().query(`UPDATE ${tableName} SET pending = true WHERE pending = false AND address = ? AND token_address = ? AND amount = ?`, [withdrawals[i].address, withdrawals[i].token_address, parseInt(withdrawals[i].amount)])
   }
   return true
 }
@@ -70,21 +86,21 @@ const insertIntoMerkleRootAtChain = async (root: string) => {
   let tx = await contract.deployRewards(root, {gasLimit: 2500000})
   tx = await tx.wait()
 
-  console.log("Succesfully inserted the merkle root at the following transaction: ", tx)
-
+  console.log("Successfully inserted the merkle root at the following transaction: ", tx)
 }
 
 const main = async () => {
 
-  let values: any[] = []
+  let values: any[] = [];
 
   const connection = mysql.createConnection(process.env.DATABASE_URL)
   console.log('Connected to PlanetScale!')
-  connection.end()
 
-  const pendingWithdrawals = await fetchPendingWithdrawals(connection)
+  console.log('Fetching pending withdrawals...')
+  const pendingWithdrawals = await fetchPendingWithdrawals(connection, "pending_withdrawals");
   console.log(pendingWithdrawals)
 
+  console.log('Generating merkle tree...')
   for (let i = 0; i < pendingWithdrawals.length; i++) {
     if(pendingWithdrawals[i].pending == 1){
       const value = [pendingWithdrawals[i].address, pendingWithdrawals[i].token_address, pendingWithdrawals[i].amount]
@@ -99,11 +115,10 @@ const main = async () => {
     const proofZero = tree.getProof(0);
     const proofOne = tree.getProof(1);
 
-    insertMerkleTree(connection, tree, values)
+    insertMerkleTree(connection, tree, values);
     console.log(tree);
 
     console.log(tree.render())
-      
 };
 
-main();
+export { fetchPendingWithdrawals, insertMerkleTree, resetPendingWithdrawals, insertIntoMerkleRootAtChain, processPendingWithdrawals }
