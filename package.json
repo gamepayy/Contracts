@@ -2,7 +2,8 @@
     "allowImportingTsExtensions": true,
     "scripts": {
         "test": "npx hardhat test",
-        "test:ci": "npx hardhat test --network tenderly-fork"
+        "test:ci": "npx hardhat test --network tenderly-fork",
+        "test:integration:merkletree": " npx hardhat test test/integration/merkleMinter.ts --network mumbai"
     },
     "dependencies": {
         "@babel/eslint-parser": "^7.5.4",
